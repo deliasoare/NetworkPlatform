@@ -1,0 +1,133 @@
+{% extends 'network/layout.html' %} 
+{% load static %}
+{% block body %} 
+    <div style="padding:20px;">
+        <h1>{{profile.username}}</h1>
+        <div style="display:flex; align-items:center; justify-content:center;">
+            <div style="margin-right:50px; margin-left:50px;" class=followers>
+                <h2 id="followers">Followers</h2>
+                <h6 style="text-align:center;">{{follow_count}}</h6>
+            </div>
+            {% if profile != request.user and request.user.is_authenticated %}
+                {% if followed == False %}
+                    <a href="{% url 'follow' username=profile.username %}" style="margin-top:10%;" class="btn btn-light">Follow</a>
+                {% elif followed == True %}
+                    <a href="{% url 'unfollow' username=profile.username %}" style="margin-top:10%;" class="btn btn-light">Unfollow</a>
+                {% endif %}
+            {% endif %}
+            <div style="margin-left:50px" class="following">
+                <h2 id="following"> Following </h2>
+                <h6 style="text-align:center;">{{following_count}}</h6>
+            </div>
+        </div>
+    </div>
+
+
+        {% for post in posts %} 
+            <div class="post">
+                <div class="{{post.id}}" id="post">
+                    <a class="username" href="{% url 'profile_without_parameter' username=post.user.username %}"><h6>{{post.user.username}}</h6></a>    
+                    {% if post.user == request.user %}
+                        <a style="font-size:9px; " class= "{{post.id}}" id="edit">Edit</a>
+                    {% endif %}
+                    <p style="font-size:14px;" id="body">{{post.body}}</p>
+                    <p style="font-size:9px; color:lightgray;">{{post.date}}</p>
+                    <p style="font-size:12px; display:inline-block; " id="likes">{{ post.likers.all.count }}</p> 
+                    {% if request.user in post.likers.all %}
+                        <a class="{{request.user.username}}" id="like">&#x2665;</a>
+                    {% else %}
+                        <a class="{{request.user.username}}" id="like">♡</a>
+                    {% endif %}
+                    </p> 
+                </div>
+                <div id="form">
+                    <textarea id="text" rows="5" cols="70">{{post.body}}</textarea>
+                    <button id="save" class="btn btn-primary btn-sm">Save</button>
+                </div>
+            </div>
+        {% endfor %}
+    
+    <nav style="display:flex; justify-content:center;" aria-label="Page navigation">
+        <ul class="pagination">
+            {% if previous != 0 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'profile' username=profile.username page=previous %}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item"><a class="page-link" href="{% url 'profile' username=profile.username page=previous %}">{{previous}}</a></li>
+            {% else %} 
+                <li class="page-item disabled">
+                    <a class="page-link">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled"><a class="page-link">{{behind}}</a></li>
+            {% endif %}
+
+            <li class="page-item"><a class="page-link" href="{% url 'profile' username=profile.username page=page %}">{{page}}</a></li>
+
+            {% if next != 0 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'profile' username=profile.username page=next %}">{{next}}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'profile' username=profile.username page=next %}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link">{{ahead}}</a></li>
+                <li class="page-item disabled">
+                    <a class="page-link">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    </div>
+
+    <div id="popupFollowers" class="modal">
+        <div class="modal-content">
+            <span class="closeFollowers">&times;</span>
+            <div id="actualFollowers">
+                {% for follower in followers %} 
+                    <p><a style="color:black; margin-left:43%;" href="{% url 'profile' username=follower.username page=1 %}">{{follower}}</a></p> 
+                    
+                {% empty %}
+                    {% if profile == request.user %}
+                        <h6 style="display:flex; align-items:center; justify-content:center;"> You have no followers just yet. </h6>
+                    {% else %}
+                        <h6 style="display:flex; align-items:center; justify-content:center;">{{profile.username}} has no followers just yet.</h6>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="popupFollowing" class="modal">
+        <div class="modal-content">
+            <span class="closeFollowing">&times;</span>
+            <div id="Following">
+                {% for following in followings %} 
+                    <p><a style="color:black; margin-left:43%;" href="{% url 'profile' username=following.username page=1">{{following}}</a></p>
+                {% empty %}
+                    {% if profile == request.user %}
+                        <h6 style="display:flex; align-items:center; justify-content:center;"> As of now, you are not following anyone.</h6>
+                    {% else %}
+                        <h6 style="display:flex; align-items:center; justify-content:center;">As of now, {{profile.username}} is not following anybody.</h6>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+
+    <script src="{% static 'network/index.js' %}"></script>
+    <script src="{% static 'network/profile.js' %}"></script>
+
+{% endblock %}
